@@ -1,0 +1,113 @@
+---
+
+- hosts: 127.0.0.1
+  connection: local
+  become: yes
+
+  tasks:
+    - name: Install supervisor
+      apt:
+        name: supervisor
+        state: latest
+
+    - name: Make sure supervisord is registered with systemd
+      systemd:
+        name: supervisor
+        enabled: yes
+        masked: no
+
+    - name: Install pyserial
+      apt:
+        name: python-serial
+        state: latest
+
+    - name: Install tkinter
+      apt:
+        name: python-tk
+        state: latest
+
+    - name: Install rabbitmq and pika
+      apt:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - rabbitmq-server
+        - python-pika
+      notify: start rabbitmq
+
+    - name: Make sure rabbitmq is registered with systemd
+      systemd:
+        name: rabbitmq-server
+        enabled: yes
+        masked: no
+
+    - name: Install logrotate
+      apt:
+        name: logrotate
+        state: latest
+
+    - name: Configure logrotate
+      copy:
+        src: etc/logrotate.d/mt500
+        dest: /etc/logrotate.d/mt500
+
+    - name: Create directory for pymt500
+      file:
+        path: "/home/{{ user }}/Desktop/pymt500"
+        state: directory
+
+    - name: Place pymt500 source
+      copy:
+        src: "iflows/Desktop/pymt500/{{ item }}"
+        dest: "/home/{{ user }}/Desktop/pymt500/{{ item }}"
+      with_items:
+        - mt500.py
+        - mt500_ui.py
+
+    - name: Template pymt500 config
+      template:
+        src: iflows/Desktop/pymt500/mt500.conf
+        dest: "/home/{{ user }}/Desktop/pymt500/mt500.conf"
+      notify: restart supervisor
+
+    - name: Create directory for log files
+      file:
+        path: /var/log/mt500
+        state: directory
+
+    - name: Create log files
+      file:
+        path: /var/log/mt500/{{ item }}
+        state: touch
+      with_items:
+        - error.log
+        - debug.log
+
+    - name: Place supervisor config
+      template:
+        src: etc/supervisor/conf.d/mt500.conf
+        dest: /etc/supervisor/conf.d/mt500.conf
+      notify: restart supervisor
+
+    - name: Enable desktop icons
+      command: gsettings set org.gnome.desktop.background show-desktop-icons true 
+
+    - name: Install teamviewer
+      apt:
+        deb: packages/teamviewer_13.2.13582_amd64.deb
+      tags: teamviewer
+ 
+    - name: Restart mt500
+      command: /bin/true
+      notify: restart supervisor
+
+  handlers:
+    - name: restart supervisor
+      service:
+        name: supervisor
+        state: restarted
+
+    - name: start rabbitmq
+      service:
+        name: rabbitmq-server
+        state: started

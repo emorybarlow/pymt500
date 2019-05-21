@@ -1,0 +1,9 @@
+user: iflows
+fips: VAZ014
+network_id: 100
+heartbeat_interval: 1
+serial_in: "{\"port\": \"/dev/ttyS0\", \"baud\": 9600}"
+serial_out: "{\"port\": \"/dev/ttyS1\", \"baud\": 300}"
+consumers: 
+  - "maggie = {\"ip\": \"72.66.190.194\", \"port\": 3154, \"type\": \"server\"}"
+  - "datawise = {\"ip\": \"208.52.185.228\", \"port\": 2317, \"type\": \"raw\"}"

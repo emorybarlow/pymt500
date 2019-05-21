@@ -1,0 +1,11 @@
+{
+  "fips": "VAZ024",
+  "network_id": 139,
+  "heartbeat_interval": 1,
+  "serial_in": "{\"port\": \"/dev/ttyS0\", \"baud\": 9600}",
+  "serial_out": "{\"port\": \"/dev/ttyS1\", \"baud\": 300}",
+  "consumers": [
+      "maggie = {\"ip\": \"72.66.190.194\", \"port\": 3154, \"type\": \"server\"}",
+      "datawise = {\"ip\": \"22.22.22.22\", \"port\": 1234, \"type\": \"raw\"}"
+  ]
+}
