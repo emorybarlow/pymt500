@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import ConfigParser
+import configparser
 import json
 import logging
 import pika
@@ -135,6 +135,7 @@ class MT500:
             self.last_hb = time.time()
 
     def test_connection(self):
+        self.debug_logger.debug('testing connection')
         for consumer in self.consumers:
             host = consumer['ip']
             port = int(consumer['port'])
@@ -143,6 +144,7 @@ class MT500:
             s.settimeout(10)
             try:
                 s.connect((host,port))
+                s.sendall('connection test'.encode())
                 self.write_data_to_queue('Successfully connected to {0}:{1}'.format(host,port))
             except Exception as e:
                 self.write_data_to_queue('Failed to connect to {0}:{1}'.format(host,port))
@@ -169,12 +171,14 @@ class MT500:
             self.serial_write.write(chr(int(byte, 16)))
 
     def read_command_queue(self):
+        self.debug_logger.debug('Reading command queue')
         try:
             method_frame, header_frame, body = self.rabbit_channel.basic_get(self.command_queue)
             while body:
                 self.rabbit_channel.basic_ack(method_frame.delivery_tag)
                 try:
-                    command = json.loads(body)
+                    command = json.loads(body.decode())
+                    self.debug_logger.debug(command)
                 except Exception as e:
                     self.error_logger.error('Invalid command')
                     continue
@@ -205,7 +209,7 @@ class MT500:
             return
 
         try:
-            s.sendall(data)
+            s.sendall(data.encode())
         except Exception as e:
             self.error_logger.exception('Failed to send data to {0} on port {1}')
         finally:
@@ -256,7 +260,7 @@ class MT500:
 
 
 def main():
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.read('mt500.conf')
     MT500(config)
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
-import ConfigParser
+import configparser
 import json
 import pika
 
-from Tkinter import *
-from ttk import *
+from tkinter import *
+from tkinter.ttk import *
 
 def check_queue():
     global ui, rabbit_channel
@@ -32,14 +32,27 @@ def test_connection():
 def insert_record(data):
     global data_text, all_text
     all_text.append(data)
-    data_text.insert(END, '{0}\n'.format(data.strip()))
+
+    data = data.strip()
+    try:
+        data = data.decode()
+    except:
+        pass
+
+
+    data_text.insert(END, '{0}\n'.format(data))
     data_text.see(END)
 
     if int(data_text.index('end').split('.')[0]) - 2 > 500:
         all_text.pop(0)
         clear_data()
         for line in all_text:
-            data_text.insert(END, '{0}\n'.format(line.strip()))
+            line = line.strip()
+            try:
+                line = line.decode()
+            except:
+                pass
+            data_text.insert(END, '{0}\n'.format(line))
             data_text.see(END)
 
 def on_closing():
@@ -53,7 +66,7 @@ rabbit_channel = rabbit_conn.channel()
 rabbit_channel.queue_declare(queue='data')
 rabbit_channel.queue_declare(queue='command')
 
-config = ConfigParser.RawConfigParser()
+config = configparser.RawConfigParser()
 config.read('mt500.conf')
 
 ui = Tk()

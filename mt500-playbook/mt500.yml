@@ -16,14 +16,23 @@
         enabled: yes
         masked: no
 
+    - name: Install pip3
+      apt:
+        name: python3-pip
+        state: latest
+
+    - name: Install configparser
+      pip:
+        name: configparser
+
     - name: Install pyserial
       apt:
-        name: python-serial
+        name: python3-serial
         state: latest
 
     - name: Install tkinter
       apt:
-        name: python-tk
+        name: python3-tk
         state: latest
 
     - name: Install rabbitmq and pika
@@ -32,7 +41,7 @@
         state: latest
       with_items:
         - rabbitmq-server
-        - python-pika
+        - python3-pika
       notify: start rabbitmq
 
     - name: Make sure rabbitmq is registered with systemd
@@ -82,6 +91,12 @@
       with_items:
         - error.log
         - debug.log
+
+    - name: Create python symlink
+      file:
+        src: /usr/bin/python3
+        dest: /usr/bin/python
+        state: link
 
     - name: Place supervisor config
       template:
