@@ -168,7 +168,7 @@ class MT500:
         if not self.serial_write or not self.serial_write.readable():
             self.open_serial_out()
         for byte in raw:
-            self.serial_write.write(chr(int(byte, 16)))
+            self.serial_write.write(byte.encode())
 
     def read_command_queue(self):
         self.debug_logger.debug('Reading command queue')
@@ -243,7 +243,7 @@ class MT500:
 
                 last_byte = time.time()
                 byte = self.serial_read.read(1)
-                rx_data.append(byte.encode('hex'))
+                rx_data.append(byte.hex())
                 if len(rx_data) == 4:
                     gid, data =  self.decode_iflows(rx_data)
                     now = datetime.now()
