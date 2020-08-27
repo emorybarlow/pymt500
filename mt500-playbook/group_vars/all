@@ -1,7 +1,7 @@
 user: iflows
 fips: VAZ014
 network_id: 100
-heartbeat_interval: 1
+heartbeat_interval: 60
 serial_in: "{\"port\": \"/dev/ttyS0\", \"baud\": 9600}"
 serial_out: "{\"port\": \"/dev/ttyS1\", \"baud\": 300}"
 consumers: 
