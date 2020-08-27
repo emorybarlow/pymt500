@@ -250,10 +250,13 @@ class MT500:
                     record = '{0},{1},{2},{3},{4}'.format(now.strftime('%m/%d/%Y %H:%M:%S'), gid, data, ''.join(rx_data), self.network_id)
                     try:
                         self.write_data_to_queue(record)
-                    except Exception as e:
+                    except:
                         pass
                     self.send_to_consumers(record, rx_data)
-                    self.send_to_serial(rx_data)
+                    try:
+                        self.send_to_serial(rx_data)
+                    except:
+                        pass
                     self.data_logger.info(record)
                     self.msg_count += 1
                     rx_data= []
