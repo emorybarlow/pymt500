@@ -65,6 +65,16 @@
         path: "/home/{{ user }}/Desktop/pymt500"
         state: directory
 
+    - name: Place watchdog source
+      copy:
+        src: "root/watchdog.py"
+        dest: "/root/watchdog.py"
+
+    - name: Create cron for watchdog
+      copy:
+        src: "etc/cron.d/mt500_watchdog"
+        dest: "/etc/cron.d/mt500_watchdog"
+
     - name: Place pymt500 source
       copy:
         src: "iflows/Desktop/pymt500/{{ item }}"

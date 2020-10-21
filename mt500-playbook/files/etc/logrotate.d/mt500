@@ -7,6 +7,6 @@
     sharedscripts
     dateext
     postrotate
-    /sbin/service supervisord restart > /dev/null 2>/dev/null || true
+    /usr/bin/supervisorctl restart mt500 > /dev/null 2>/dev/null || true
     endscript
 }
