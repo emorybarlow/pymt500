@@ -17,5 +17,3 @@ If you want to specify config values from a json file:
 ```
 ansible-playbook -K mt500.yml --extra-vars "@configs/100.json"
 ```
-
-You'll need to manually setup unattended access for teamviewer by opening teamviewer and setting the Personal Password in Options->Security. You'll also want to make sure that teamviewer starts on a reboot by putting a check in the Start TeamViewer with system checkbox in Options->General
