@@ -24,7 +24,7 @@ class MT500:
         self.consumers = []
         for consumer in config.items('consumers'):
             consumer_obj = json.loads(consumer[1])
-            self.consumers.append(consume_obj)
+            self.consumers.append(consumer_obj)
             self.event_count[consumer_obj['ip']] = 0
 
         self.ser_in = json.loads(config.get('serial', 'in'))
@@ -136,10 +136,10 @@ class MT500:
                 if data_type == 'server':
                     self.send_data(host, port, heartbeat)
 
-                self.debug_logger.debug('Event count for {}: {}'.format(host, event_count[host]))
+                self.debug_logger.debug('Event count for {}: {}'.format(host, self.event_count[host]))
                 self.debug_logger.debug('Rx Count: {}'.format(self.rx_count))
 
-                event_count[host] = 0
+                self.event_count[host] = 0
                 self.rx_count = 0
 
             self.last_hb = time.time()
