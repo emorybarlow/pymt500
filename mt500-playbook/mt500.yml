@@ -91,6 +91,7 @@
         src: iflows/Desktop/pymt500/mt500.conf
         dest: "/home/{{ user }}/Desktop/pymt500/mt500.conf"
       notify: restart supervisor
+      tags: mt500_config
 
     - name: Create directory for log files
       file:
