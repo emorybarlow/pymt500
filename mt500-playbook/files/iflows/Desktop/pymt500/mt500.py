@@ -19,9 +19,13 @@ class MT500:
         self.network_id = config.get('mt500', 'network_id')
         self.heartbeat_interval = config.getint('mt500', 'heartbeat_interval') * 60
 
+        self.event_count = {}
+        self.rx_count = 0
         self.consumers = []
         for consumer in config.items('consumers'):
-            self.consumers.append(json.loads(consumer[1]))
+            consumer_obj = json.loads(consumer[1])
+            self.consumers.append(consume_obj)
+            self.event_count[consumer_obj['ip']] = 0
 
         self.ser_in = json.loads(config.get('serial', 'in'))
         self.ser_out = json.loads(config.get('serial', 'out'))
@@ -132,6 +136,12 @@ class MT500:
                 if data_type == 'server':
                     self.send_data(host, port, heartbeat)
 
+                self.debug_logger.debug('Event count for {}: {}'.format(host, event_count[host]))
+                self.debug_logger.debug('Rx Count: {}'.format(self.rx_count))
+
+                event_count[host] = 0
+                self.rx_count = 0
+
             self.last_hb = time.time()
 
     def test_connection(self):
@@ -157,12 +167,16 @@ class MT500:
             port = int(consumer['port'])
             data_type = consumer['type']
 
+            error = 0
             if data_type == 'server':
-                self.send_data(host, port, record)
+                error = self.send_data(host, port, record)
             elif data_type == 'raw':
-                pass
                 for byte in raw:
-                    self.send_data(host, port, chr(int(byte, 16)))
+                    error += self.send_data(host, port, chr(int(byte, 16)))
+
+            if error == 0:
+                new_count = self.event_count.get(host, 0) + 1
+                self.event_count[host] = new_count
 
     def send_to_serial(self, raw):
         if not self.serial_write or not self.serial_write.readable():
@@ -206,14 +220,17 @@ class MT500:
         except Exception as e:
             self.error_logger.exception('Unable to connect to {0} on port {1}'.format(server, port))
             s.close()
-            return
+            return 1
 
+        error = 0
         try:
             s.sendall(data.encode())
         except Exception as e:
             self.error_logger.exception('Failed to send data to {0} on port {1}')
+            error = 1
         finally:
             s.close()
+            return error
 
     def run(self):
         initial_byte = True
@@ -246,6 +263,7 @@ class MT500:
                 rx_data.append(byte.hex())
                 if len(rx_data) == 4:
                     gid, data =  self.decode_iflows(rx_data)
+                    self.rx_count += 1
                     now = datetime.now()
                     record = '{0},{1},{2},{3},{4}'.format(now.strftime('%m/%d/%Y %H:%M:%S'), gid, data, ''.join(rx_data), self.network_id)
                     try:
