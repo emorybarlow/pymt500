@@ -4,6 +4,7 @@ import configparser
 import json
 import logging
 import pika
+import requests
 import serial
 import socket
 import time
@@ -128,6 +129,13 @@ class MT500:
             except Exception as e:
                 pass
 
+            stats = {
+                'network_id': self.network_id,
+                'rx_count': self.rx_count,
+                'consumers': self.event_count,
+            }
+            self.debug_logger.debug(stats)
+
             for consumer in self.consumers:
                 host = consumer['ip']
                 port = int(consumer['port'])
@@ -135,14 +143,15 @@ class MT500:
 
                 if data_type == 'server':
                     self.send_data(host, port, heartbeat)
-
-                self.debug_logger.debug('Event count for {}: {}'.format(host, self.event_count[host]))
-                self.debug_logger.debug('Rx Count: {}'.format(self.rx_count))
-
                 self.event_count[host] = 0
-                self.rx_count = 0
 
+            self.rx_count = 0
             self.last_hb = time.time()
+
+            try:
+                requests.post('http://mtiv-tools.com/mapi/mt500_stats', json=stats)
+            except Exception as e:
+                self.error_logger.error('Failed to send stats: {}'.format(e))
 
     def test_connection(self):
         self.debug_logger.debug('testing connection')
