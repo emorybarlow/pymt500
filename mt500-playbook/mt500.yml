@@ -85,6 +85,7 @@
       with_items:
         - mt500.py
         - mt500_ui.py
+      tags: mt500_source
 
     - name: Template pymt500 config
       template:
