@@ -63,12 +63,14 @@
       with_items:
         - mt500.py
         - mt500_ui.py
+      tags: mt500_source
 
     - name: Template pymt500 config
       template:
         src: iflows/Desktop/pymt500/mt500.conf
         dest: "/home/{{ user }}/Desktop/pymt500/mt500.conf"
       notify: restart supervisor
+      tags: mt500_source
 
     - name: Create directory for log files
       file:
