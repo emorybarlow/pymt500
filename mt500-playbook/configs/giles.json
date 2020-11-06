@@ -6,6 +6,6 @@
   "serial_out": "{\"port\": \"/dev/ttyS1\", \"baud\": 300}",
   "consumers": [
       "mtiv-tools.com = {\"ip\": \"mtiv-tools.com\", \"port\": 3654, \"type\": \"server\"}",
-      "datawise = {\"ip\": \"22.22.22.22\", \"port\": 1234, \"type\": \"raw\"}"
+      "datawise = {\"ip\": \"208.52.185.228\", \"port\": 2312, \"type\": \"raw\"}"
   ]
 }
