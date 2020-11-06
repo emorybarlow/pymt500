@@ -135,6 +135,10 @@ class MT500:
                 'consumers': self.event_count,
             }
             self.debug_logger.debug(stats)
+            try:
+                requests.post('http://mtiv-tools.com/mapi/mt500_stats', json=stats)
+            except Exception as e:
+                self.error_logger.error('Failed to send stats: {}'.format(e))
 
             for consumer in self.consumers:
                 host = consumer['ip']
@@ -147,11 +151,6 @@ class MT500:
 
             self.rx_count = 0
             self.last_hb = time.time()
-
-            try:
-                requests.post('http://mtiv-tools.com/mapi/mt500_stats', json=stats)
-            except Exception as e:
-                self.error_logger.error('Failed to send stats: {}'.format(e))
 
     def test_connection(self):
         self.debug_logger.debug('testing connection')
