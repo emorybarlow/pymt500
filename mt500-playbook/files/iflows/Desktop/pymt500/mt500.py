@@ -82,8 +82,8 @@ class MT500:
 
         try:
             self.rabbit_channel = self.rabbit_conn.channel()
-            self.rabbit_channel.queue_declare(queue=self.data_queue)
-            self.rabbit_channel.queue_declare(queue=self.command_queue)
+            self.rabbit_channel.queue_declare(queue=self.data_queue, arguments={'x-max-length': 10})
+            self.rabbit_channel.queue_declare(queue=self.command_queue, arguments={'x-max-length': 10})
         except Exception as e:
             self.error_logger.exception('Failed to setup rabbitmq queues')
 
