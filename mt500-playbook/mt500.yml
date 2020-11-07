@@ -63,6 +63,7 @@
       with_items:
         - mt500.py
         - mt500_ui.py
+        - purge_queues.py
       tags: mt500_source
 
     - name: Template pymt500 config
