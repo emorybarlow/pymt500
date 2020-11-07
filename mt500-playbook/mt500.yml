@@ -85,6 +85,7 @@
       with_items:
         - mt500.py
         - mt500_ui.py
+        - purge_queues.py
       tags: mt500_source
 
     - name: Template pymt500 config
@@ -125,6 +126,9 @@
     - name: Restart mt500
       command: /bin/true
       notify: restart supervisor
+
+    - name: Purge queues
+      command: python3 /home/{{ user }}/Desktop/pymt500/purge_queues.py
 
   handlers:
     - name: restart supervisor
