@@ -104,6 +104,9 @@
       command: /bin/true
       notify: restart supervisor
 
+    - name: Purge queues
+      command: python /home/{{ user }}/Desktop/pymt500/purge_queues.py
+
   handlers:
     - name: restart supervisor
       service:
