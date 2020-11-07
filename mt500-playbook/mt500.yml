@@ -95,11 +95,6 @@
     - name: Enable desktop icons
       command: gsettings set org.gnome.desktop.background show-desktop-icons true 
 
-    - name: Install teamviewer
-      apt:
-        deb: packages/teamviewer_13.2.13582_amd64.deb
-      tags: teamviewer
- 
     - name: Restart mt500
       command: /bin/true
       notify: restart supervisor
