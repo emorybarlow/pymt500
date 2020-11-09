@@ -63,12 +63,15 @@
       with_items:
         - mt500.py
         - mt500_ui.py
+        - purge_queues.py
+      tags: mt500_source
 
     - name: Template pymt500 config
       template:
         src: iflows/Desktop/pymt500/mt500.conf
         dest: "/home/{{ user }}/Desktop/pymt500/mt500.conf"
       notify: restart supervisor
+      tags: mt500_config
 
     - name: Create directory for log files
       file:
@@ -92,14 +95,12 @@
     - name: Enable desktop icons
       command: gsettings set org.gnome.desktop.background show-desktop-icons true 
 
-    - name: Install teamviewer
-      apt:
-        deb: packages/teamviewer_13.2.13582_amd64.deb
-      tags: teamviewer
- 
     - name: Restart mt500
       command: /bin/true
       notify: restart supervisor
+
+    - name: Purge queues
+      command: python /home/{{ user }}/Desktop/pymt500/purge_queues.py
 
   handlers:
     - name: restart supervisor
