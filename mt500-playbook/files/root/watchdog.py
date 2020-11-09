@@ -30,7 +30,7 @@ try:
         while f.read(1) != b'\n':
             f.seek(-2, os.SEEK_CUR)
         last_line = f.readline().decode().strip()
-except OSError:
+except:
     with open(LOG_FILE, 'r') as f:
         for line in f:
             pass
