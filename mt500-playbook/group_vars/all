@@ -1,4 +1,4 @@
-user: iflows
+user: administrator
 fips: VAZ014
 network_id: 100
 heartbeat_interval: 60

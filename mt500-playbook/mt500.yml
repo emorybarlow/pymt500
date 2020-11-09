@@ -10,12 +10,6 @@
         name: supervisor
         state: latest
 
-    - name: Make sure supervisord is registered with systemd
-      systemd:
-        name: supervisor
-        enabled: yes
-        masked: no
-
     - name: Install pyserial
       apt:
         name: python-serial
@@ -26,6 +20,11 @@
         name: python-tk
         state: latest
 
+    - name: Install requests
+      apt:
+        name: python-requests
+        state: latest
+
     - name: Install rabbitmq and pika
       apt:
         name: "{{ item }}"
@@ -34,12 +33,6 @@
         - rabbitmq-server
         - python-pika
       notify: start rabbitmq
-
-    - name: Make sure rabbitmq is registered with systemd
-      systemd:
-        name: rabbitmq-server
-        enabled: yes
-        masked: no
 
     - name: Install logrotate
       apt:
@@ -113,6 +106,7 @@
 
     - name: Purge queues
       command: python /home/{{ user }}/Desktop/pymt500/purge_queues.py
+      tags: purge_queues
 
   handlers:
     - name: restart supervisor
