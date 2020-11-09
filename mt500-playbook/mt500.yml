@@ -51,6 +51,18 @@
         src: etc/logrotate.d/mt500
         dest: /etc/logrotate.d/mt500
 
+    - name: Place watchdog source
+      copy:
+        src: "root/watchdog.py"
+        dest: "/root/watchdog.py"
+      tags: watchdog
+
+    - name: Create cron for watchdog
+      copy:
+        src: "etc/cron.d/mt500_watchdog"
+        dest: "/etc/cron.d/mt500_watchdog"
+      tags: watchdog_cron
+
     - name: Create directory for pymt500
       file:
         path: "/home/{{ user }}/Desktop/pymt500"
