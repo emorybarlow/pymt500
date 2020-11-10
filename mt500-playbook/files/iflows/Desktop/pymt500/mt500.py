@@ -259,10 +259,10 @@ class MT500:
         rx_data = []
         self.open_serial_in()
 
-        self.hb_thread = threading.Thread(target=send_heartbeat)
+        self.hb_thread = threading.Thread(target=self.send_heartbeat)
         self.hb_thread.start()
 
-        self.command_thread = threading.Thread(target=read_command_queue)
+        self.command_thread = threading.Thread(target=self.read_command_queue)
         self.command_thread.start()
 
         while True:
