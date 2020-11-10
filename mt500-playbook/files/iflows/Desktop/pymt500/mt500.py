@@ -205,7 +205,6 @@ class MT500:
 
     def read_command_queue(self):
         while True:
-            self.debug_logger.debug('Reading command queue')
             try:
                 method_frame, header_frame, body = self.rabbit_channel.basic_get(self.command_queue)
                 while body:
