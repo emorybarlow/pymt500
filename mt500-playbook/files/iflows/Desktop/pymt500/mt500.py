@@ -7,6 +7,7 @@ import pika
 import requests
 import serial
 import socket
+import threading
 import time
 
 from datetime import datetime
@@ -16,6 +17,8 @@ VERSION='v1.0'
 
 class MT500:
     def __init__(self, config):
+        self.hb_thread = None
+        self.command_thread = None
         self.fips = config.get('mt500', 'fips')
         self.network_id = config.get('mt500', 'network_id')
         self.heartbeat_interval = config.getint('mt500', 'heartbeat_interval') * 60
@@ -48,6 +51,12 @@ class MT500:
 
     def __del__(self):
         self.rabbit_conn.close()
+
+        if self.hb_thread:
+            self.hb_thread.join()
+
+        if self.command_thread:
+            self.command_thread.join()
 
     def setup_logging(self):
         formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
@@ -119,38 +128,40 @@ class MT500:
 
     def send_heartbeat(self):
         global VERSION
-        if time.time() - self.last_hb > self.heartbeat_interval:
-            now = datetime.now()
-            ts = now.strftime('%m/%d/%Y %H:%M:%S')
-            heartbeat = '{0},{1},{2},{3},{4},{5}'.format(self.fips,ts,self.msg_count,self.network_id,VERSION,self.hw_addr)
-            self.debug_logger.debug('Sending heartbeat: {0}'.format(heartbeat))
-            try:
-                self.write_data_to_queue(heartbeat)
-            except Exception as e:
-                pass
+        while True:
+            if time.time() - self.last_hb > self.heartbeat_interval:
+                now = datetime.now()
+                ts = now.strftime('%m/%d/%Y %H:%M:%S')
+                heartbeat = '{0},{1},{2},{3},{4},{5}'.format(self.fips,ts,self.msg_count,self.network_id,VERSION,self.hw_addr)
+                self.debug_logger.debug('Sending heartbeat: {0}'.format(heartbeat))
+                try:
+                    self.write_data_to_queue(heartbeat)
+                except Exception as e:
+                    pass
 
-            stats = {
-                'network_id': self.network_id,
-                'rx_count': self.rx_count,
-                'consumers': self.event_count,
-            }
-            self.debug_logger.debug(stats)
-            try:
-                requests.post('http://mtiv-tools.com/mapi/mt500_stats', json=stats)
-            except Exception as e:
-                self.error_logger.error('Failed to send stats: {}'.format(e))
+                stats = {
+                    'network_id': self.network_id,
+                    'rx_count': self.rx_count,
+                    'consumers': self.event_count,
+                }
+                self.debug_logger.debug(stats)
+                try:
+                    requests.post('http://mtiv-tools.com/mapi/mt500_stats', json=stats)
+                except Exception as e:
+                    self.error_logger.error('Failed to send stats: {}'.format(e))
 
-            for consumer in self.consumers:
-                host = consumer['ip']
-                port = int(consumer['port'])
-                data_type = consumer['type']
+                for consumer in self.consumers:
+                    host = consumer['ip']
+                    port = int(consumer['port'])
+                    data_type = consumer['type']
 
-                if data_type == 'server':
-                    self.send_data(host, port, heartbeat)
-                self.event_count[host] = 0
+                    if data_type == 'server':
+                        self.send_data(host, port, heartbeat)
+                    self.event_count[host] = 0
 
-            self.rx_count = 0
-            self.last_hb = time.time()
+                self.rx_count = 0
+                self.last_hb = time.time()
+            time.sleep(60)
 
     def test_connection(self):
         self.debug_logger.debug('testing connection')
@@ -193,25 +204,27 @@ class MT500:
             self.serial_write.write(byte.encode())
 
     def read_command_queue(self):
-        self.debug_logger.debug('Reading command queue')
-        try:
-            method_frame, header_frame, body = self.rabbit_channel.basic_get(self.command_queue)
-            while body:
-                self.rabbit_channel.basic_ack(method_frame.delivery_tag)
-                try:
-                    command = json.loads(body.decode())
-                    self.debug_logger.debug(command)
-                except Exception as e:
-                    self.error_logger.error('Invalid command')
-                    continue
-
-                if command:
-                    command_type = command['type']
-                    if command_type == 'connection_test':
-                        self.test_connection()
+        while True:
+            self.debug_logger.debug('Reading command queue')
+            try:
                 method_frame, header_frame, body = self.rabbit_channel.basic_get(self.command_queue)
-        except Exception as e:
-            self.error_logger.exception('Failed to read from command queue')
+                while body:
+                    self.rabbit_channel.basic_ack(method_frame.delivery_tag)
+                    try:
+                        command = json.loads(body.decode())
+                        self.debug_logger.debug(command)
+                    except Exception as e:
+                        self.error_logger.error('Invalid command')
+                        continue
+
+                    if command:
+                        command_type = command['type']
+                        if command_type == 'connection_test':
+                            self.test_connection()
+                    method_frame, header_frame, body = self.rabbit_channel.basic_get(self.command_queue)
+            except Exception as e:
+                self.error_logger.exception('Failed to read from command queue')
+            time.sleep(1)
 
     def write_data_to_queue(self, data):
         try:
@@ -245,15 +258,14 @@ class MT500:
         last_byte = time.time()
         rx_data = []
         self.open_serial_in()
-        last_check = datetime.now()
+
+        self.hb_thread = threading.Thread(target=send_heartbeat)
+        self.hb_thread.start()
+
+        self.command_thread = threading.Thread(target=read_command_queue)
+        self.command_thread.start()
+
         while True:
-            self.send_heartbeat()
-
-            # Only read the command queue every 60 sec
-            if (datetime.now() - last_check).seconds > 60:
-                last_check = datetime.now()
-                self.read_command_queue()
-
             # Ensure that the serial port is open and readable
             if not self.serial_read.readable():
                 self.open_serial_in()
