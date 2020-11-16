@@ -181,6 +181,7 @@ class MT500:
                 s.close()
 
     def send_to_consumers(self, record, raw):
+        raw_bytes = [int(r, 16) for r in raw]
         for consumer in self.consumers:
             host = consumer['ip']
             port = int(consumer['port'])
@@ -190,8 +191,7 @@ class MT500:
             if data_type == 'server':
                 error = self.send_data(host, port, record)
             elif data_type == 'raw':
-                for byte in raw:
-                    error += self.send_data(host, port, chr(int(byte, 16)))
+                error = self.send_data(host, port, bytes(raw_bytes))
 
             if error == 0:
                 new_count = self.event_count.get(host, 0) + 1
