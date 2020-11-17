@@ -244,7 +244,10 @@ class MT500:
 
         error = 0
         try:
-            s.sendall(data.encode())
+            if type(data) == str:
+                s.sendall(data.encode())
+            else:
+                s.sendall(data)
         except Exception as e:
             self.error_logger.exception('Failed to send data to {0} on port {1}')
             error = 1
