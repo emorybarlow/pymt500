@@ -136,7 +136,7 @@ class MT500:
             }
             self.debug_logger.debug(stats)
             try:
-                requests.post('https://mtiv-tools.com/mapi/mt500_stats', data=json.dumps(stats), headers={'Content-Type': 'application/json'})
+                requests.post('http://old.mtiv-tools.com/mt500_stats', data=json.dumps(stats), headers={'Content-Type': 'application/json'})
             except Exception as e:
                 self.error_logger.error('Failed to send stats: {}'.format(e))
 
