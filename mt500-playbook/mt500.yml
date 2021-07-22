@@ -120,8 +120,19 @@
         dest: /etc/supervisor/conf.d/mt500.conf
       notify: restart supervisor
 
+    - name: Place meshcentral install script
+      copy:
+        src: iflows/install_meshcentral.sh
+        dest: /home/{{ user }}/install_meshcentral.sh
+        mode: '0755'
+
+    - name: Install meshcentral agent
+      shell:
+        cmd: ./install_meshcentral.sh
+        chdir: /home/{{ user }}
+
     - name: Enable desktop icons
-      command: gsettings set org.gnome.desktop.background show-desktop-icons true 
+      command: gsettings set org.gnome.desktop.background show-desktop-icons true
 
     - name: Restart mt500
       command: /bin/true
