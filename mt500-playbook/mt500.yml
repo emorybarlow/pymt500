@@ -72,11 +72,17 @@
         dest: "/root/watchdog.py"
       tags: watchdog
 
+    - name: Place supervisor monitor source
+      copy:
+        src: "root/supervisor_running.py"
+        dest: "/root/supervisor_running.py"
+      tags: watchdog
+
     - name: Create cron for watchdog
       copy:
         src: "etc/cron.d/mt500_watchdog"
         dest: "/etc/cron.d/mt500_watchdog"
-      tags: watchdog_cron
+      tags: watchdog
 
     - name: Place pymt500 source
       copy:
@@ -123,7 +129,7 @@
     - name: Place mt500 conf template
       copy:
         src: iflows/mt500.conf.j2
-        dest: /home/{{ user }}/iflows/mt500.conf.j2
+        dest: /home/{{ user }}/mt500.conf.j2
 
     - name: Place mt500 configuration script
       copy:
