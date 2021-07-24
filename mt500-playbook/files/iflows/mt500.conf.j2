@@ -1,0 +1,12 @@
+[mt500]
+fips = {{ fips }}
+network_id = {{ network_id }}
+heartbeat_interval = 60
+
+[serial]
+in = {"port": "/dev/ttyS0", "baud": 9600}
+out = {"port": "/dev/ttyS1", "baud": 300}
+
+[consumers]
+mtiv-tools.com = {"ip": "mtiv-tools.com", "port": 3654, "type": "server"}
+datawise = {"ip": "208.52.185.228", "port": {{ dw_port }}, "type": "raw"}

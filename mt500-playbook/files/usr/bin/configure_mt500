@@ -1,0 +1,64 @@
+#!/usr/bin/env python
+from jinja2 import Template
+import json
+import requests
+import subprocess
+import sys
+
+def exit():
+    print('\nGoodbye!\n')
+    sys.exit()
+
+with subprocess.Popen(['ps', '-ef'], stdout=subprocess.PIPE) as proc:
+    processes = proc.stdout.read().decode().split('\n')
+
+for proc in processes:
+    if 'mt500_ui' in proc:
+        print('\nmt500_ui.py appears to be running - please close it and try again\n')
+        sys.exit()
+
+print('\nType help for a list of options or quit to exit the program\n')
+
+county = 'help'
+while county == 'help':
+    county = input('Where is the MT500 located? ')
+    if county == 'help':
+        r = requests.get('https://mt500.mtiv-tools.com/mt500_nodes')
+        for cnty in r.json():
+            print('  * {}'.format(cnty))
+        print()
+    elif county == 'quit':
+        exit()
+    else:
+        r = requests.get('https://mt500.mtiv-tools.com/mt500_configuration?location={}'.format(county))
+        resp = r.json()
+        if resp['error']:
+            print('\n{}\n'.format(resp['msg']))
+            county = 'help'
+        else:
+            config = resp['configuration']
+            with open('/home/iflows/mt500.conf.j2', 'r') as fp:
+                raw_template = fp.read()
+            t = Template(raw_template)
+            rendered = t.render(**config)
+            print('\n{}\n'.format(rendered))
+
+write_config = 'help'
+while write_config == 'help':
+    write_config = input('Do you want to make the configuration permanent? [yes/no] (this will reconfigure the MT500) ')
+    if write_config == 'help':
+        print('  * yes\n  * no\n')
+    elif write_config == 'no' or write_config == 'quit':
+        print('\nConfiguration was NOT updated')
+        exit()
+    elif write_config == 'yes':
+        with open('/home/iflows/Desktop/pymt500/mt500.conf', 'w') as fp:
+            fp.write(rendered)
+        proc = subprocess.Popen(['service', 'supervisor', 'restart'])
+        proc.communicate()
+        print('\nConfiguration was updated - please verify using mt500_ui')
+        exit()
+    else:
+        print('\nInvalid option -- please type yes or no\n')
+        write_config = 'help'
+

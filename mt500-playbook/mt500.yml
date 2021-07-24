@@ -120,6 +120,17 @@
         dest: /etc/supervisor/conf.d/mt500.conf
       notify: restart supervisor
 
+    - name: Place mt500 conf template
+      copy:
+        src: iflows/mt500.conf.j2
+        dest: /home/{{ user }}/iflows/mt500.conf.j2
+
+    - name: Place mt500 configuration script
+      copy:
+        src: usr/bin/configure_mt500
+        dest: /usr/bin/configure_mt500
+        mode: '0755'
+
     - name: Place meshcentral install script
       copy:
         src: iflows/install_meshcentral.sh
