@@ -1,1 +1,2 @@
 0 * * * * root python /root/watchdog.py && touch /root/ran
+0 * * * * root python /root/supervisor_running.py

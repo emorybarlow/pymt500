@@ -50,11 +50,17 @@
         dest: "/root/watchdog.py"
       tags: watchdog
 
+    - name: Place supervisor monitor source
+      copy:
+        src: "root/supervisor_running.py"
+        dest: "/root/supervisor_running.py"
+      tags: watchdog
+
     - name: Create cron for watchdog
       copy:
         src: "etc/cron.d/mt500_watchdog"
         dest: "/etc/cron.d/mt500_watchdog"
-      tags: watchdog_cron
+      tags: watchdog
 
     - name: Create directory for pymt500
       file:
