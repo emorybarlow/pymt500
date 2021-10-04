@@ -179,8 +179,7 @@ class MT500:
             if data_type == 'server':
                 error = self.send_data(host, port, record)
             elif data_type == 'raw':
-                for byte in raw:
-                    error += self.send_data(host, port, chr(int(byte, 16)))
+                error += self.send_data(host, port, raw, raw=True)
 
             if error == 0:
                 new_count = self.event_count.get(host, 0) + 1
@@ -221,7 +220,7 @@ class MT500:
         except Exception as e:
             self.error_logger.exception('Failed writing {0} to data queue'.format(data))
 
-    def send_data(self, server, port, data):
+    def send_data(self, server, port, data, raw=False):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.connect((server,port))
@@ -232,7 +231,10 @@ class MT500:
 
         error = 0
         try:
-            s.sendall(data.encode())
+            if raw:
+                s.sendall(bytearray.fromhex(''.join(data)))
+            else:
+                s.sendall(data.encode())
         except Exception as e:
             self.error_logger.exception('Failed to send data to {0} on port {1}')
             error = 1
